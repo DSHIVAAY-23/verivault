@@ -1,0 +1,10 @@
+[package]
+name = "verivault-guest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sp1-zkvm = "5.2.4"
+fixed = "1.23.1"
+verivault-core = { path = "../core" }
+

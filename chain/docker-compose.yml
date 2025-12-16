@@ -1,0 +1,12 @@
+# For Phase 2 MVP, we use Anvil (Foundry) as the "Sovereign Chain" to simulate the CDK behavior quickly.
+# This avoids the heavy setup of a full Polygon CDK cluster while developing the contracts and logic.
+# In a real "Phase 2b", we would replace this with the full hermez-network/zkevm-node setup.
+
+services:
+  chain:
+    image: ghcr.io/foundry-rs/foundry:latest
+    command: anvil --host 0.0.0.0 --block-time 2 --chain-id 31337
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./chain_data:/data

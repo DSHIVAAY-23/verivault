@@ -1,0 +1,16 @@
+{
+    "trade": {
+        "asset": 1,
+        "amount": 100.0,
+        "price": 50.0,
+        "side": "Buy"
+    },
+    "state": {
+        "equity": 10000.0,
+        "total_exposure": 0.0
+    },
+    "risk_params": {
+        "max_leverage": 5.0,
+        "min_equity": 100.0
+    }
+}

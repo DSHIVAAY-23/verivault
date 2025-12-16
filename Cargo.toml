@@ -1,0 +1,7 @@
+[workspace]
+members = ["core", "guest", "host", "operator"]
+resolver = "2"
+
+[patch.crates-io]
+# Often needed for SP1 to use precompiled circuits for certain crypto operations
+# sha2 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", branch = "patch-v0.10.8" }

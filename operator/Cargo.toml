@@ -1,0 +1,28 @@
+[package]
+name = "verivault-operator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# SP1
+sp1-sdk = "5.2.4"
+
+# VeriVault
+verivault-core = { path = "../core" }
+
+# Async & Runtime
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+dotenv = "0.15"
+
+# Chain Interaction (Alloy)
+alloy = { version = "1.1.3", features = ["node-bindings", "rpc-types", "providers", "signers", "contract", "json-rpc"] }
+
+# Guest ELF integration
+# We need to include the guest ELF similarly to the host
+[build-dependencies]
+sp1-build = "5.2.4"

@@ -1,0 +1,28 @@
+{
+  "trade": {
+    "asset": 1,
+    "amount": {
+      "bits": 1844674407370955161600
+    },
+    "price": {
+      "bits": 922337203685477580800
+    },
+    "side": "Buy"
+  },
+  "state": {
+    "equity": {
+      "bits": 184467440737095516160000
+    },
+    "total_exposure": {
+      "bits": 0
+    }
+  },
+  "risk_params": {
+    "max_leverage": {
+      "bits": 92233720368547758080
+    },
+    "min_equity": {
+      "bits": 184467440737095516160
+    }
+  }
+}
