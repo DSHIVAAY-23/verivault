@@ -1,4 +1,4 @@
-export const VAULT_ADDRESS = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318" as const;
+export const VAULT_ADDRESS = "0x6603461bF090D5689a46192F22285Fe9d01Bfcf0" as const;
 
 export const VAULT_ABI = [
     {
