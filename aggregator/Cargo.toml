@@ -1,0 +1,9 @@
+[package]
+name = "verivault-aggregator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sp1-zkvm = { version = "5.2.4", features = ["verify"] }
+serde = { version = "1.0", features = ["derive"] }
+verivault-core = { path = "../core" }

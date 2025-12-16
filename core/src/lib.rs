@@ -39,7 +39,7 @@ pub struct RiskParams {
     pub min_equity: Fixed, // e.g., 100.0 (Minimum account balance)
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum RiskError {
     LeverageExceeded,
     InsufficientEquity,
@@ -93,7 +93,7 @@ pub fn check_risk(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fixed::types::I64F64;
+    use super::*;
 
     fn f(n: i64) -> Fixed {
         Fixed::from_num(n)
@@ -143,3 +143,6 @@ mod tests {
         assert_eq!(result, Err(RiskError::LeverageExceeded));
     }
 }
+
+#[cfg(test)]
+mod fuzz_tests;
