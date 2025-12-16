@@ -6,8 +6,8 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VeriVault Dashboard",
-  description: "Proof of Solvent Execution Monitor",
+  title: "VeriVault",
+  description: "ZK-Proven Non-Custodial Trading",
 };
 
 export default function RootLayout({

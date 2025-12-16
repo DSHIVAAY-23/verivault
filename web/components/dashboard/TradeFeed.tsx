@@ -5,39 +5,43 @@ import { useState, useEffect } from 'react'
 import { parseAbiItem } from 'viem'
 import { VAULT_ABI, VAULT_ADDRESS } from '@/abi/Vault'
 import { cn } from '@/lib/utils'
-import { Activity } from 'lucide-react'
-
-type TradeLog = {
-    hash: string
-    user: string
-    success: boolean
-    timestamp: number
-}
+import { Activity, Loader2, CheckCircle2 } from 'lucide-react'
+import { useTradeStore, Trade } from '@/lib/store'
+import { ProofModal } from '@/components/modals/ProofModal'
 
 export function TradeFeed() {
-    const [logs, setLogs] = useState<TradeLog[]>([])
+    const { trades, addTrade, updateTrade } = useTradeStore()
 
+    // Listen for real confirmations
     useWatchContractEvent({
         address: VAULT_ADDRESS,
         abi: VAULT_ABI,
         eventName: 'TradeExecuted',
         onLogs(newLogs) {
-            const formattedLogs = newLogs.map((log) => ({
-                hash: log.transactionHash,
-                user: log.args.user || 'Unknown',
-                success: log.args.success || false,
-                timestamp: Date.now(),
-            }))
-            setLogs((prev) => [...formattedLogs, ...prev])
+            newLogs.forEach((log) => {
+                const incomingHash = log.transactionHash
+                const exists = trades.find(t => t.hash === incomingHash)
+
+                if (exists) {
+                    updateTrade(exists.id, { status: 'verified', hash: incomingHash })
+                } else {
+                    addTrade({
+                        id: incomingHash,
+                        user: log.args.user || 'Unknown',
+                        success: log.args.success || false,
+                        status: 'verified',
+                        timestamp: Date.now(),
+                        hash: incomingHash
+                    })
+                }
+            })
         },
     })
 
-    // Fetch recent history
+    // Initial Load
     const publicClient = usePublicClient()
-
     useEffect(() => {
         if (!publicClient) return;
-
         async function fetchHistory() {
             try {
                 // @ts-ignore
@@ -48,17 +52,22 @@ export function TradeFeed() {
                     toBlock: 'latest'
                 });
 
-                const formattedHistory = history.map(log => ({
-                    hash: log.transactionHash,
+                const formatted = history.map(log => ({
+                    id: log.transactionHash,
                     user: log.args.user || 'Unknown',
                     success: log.args.success || false,
-                    timestamp: Date.now(), // Approximate
+                    status: 'verified' as const,
+                    timestamp: Date.now(), // Approximate for old logs
+                    hash: log.transactionHash
                 })).reverse();
 
-                setLogs(prev => [...prev, ...formattedHistory]);
-            } catch (e) {
-                console.error("Failed to fetch history", e);
-            }
+                // Simple dedup based on hash
+                formatted.forEach(t => {
+                    if (!trades.find(existing => existing.hash === t.hash)) {
+                        addTrade(t)
+                    }
+                })
+            } catch (e) { console.error(e) }
         }
         fetchHistory();
     }, [publicClient]);
@@ -71,34 +80,38 @@ export function TradeFeed() {
             </div>
 
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {logs.length === 0 ? (
+                {trades.length === 0 ? (
                     <div className="text-zinc-500 text-sm italic text-center py-8">
                         Waiting for on-chain events...
                     </div>
                 ) : (
-                    logs.map((log) => (
-                        <div
-                            key={`${log.hash}-${log.timestamp}`}
-                            className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between hover:border-zinc-700 transition-colors"
-                        >
-                            <div className="flex flex-col">
-                                <span className="text-xs text-zinc-400 font-mono">
-                                    {log.user.slice(0, 6)}...{log.user.slice(-4)}
-                                </span>
-                                <span className={cn(
-                                    "text-sm font-medium",
-                                    log.success ? "text-emerald-400" : "text-red-400"
-                                )}>
-                                    {log.success ? "Trade Executed" : "Trade Failed"}
+                    trades.map((trade) => (
+                        <ProofModal key={trade.id} trade={trade}>
+                            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between hover:border-emerald-500/50 cursor-pointer transition-colors group">
+                                <div className="flex flex-col">
+                                    <span className="text-xs text-zinc-400 font-mono flex items-center gap-1">
+                                        {trade.user.slice(0, 6)}...{trade.user.slice(-4)}
+                                    </span>
+                                    <span className={cn(
+                                        "text-sm font-medium flex items-center gap-1",
+                                        trade.status === 'verified' ? "text-emerald-400" : "text-yellow-400"
+                                    )}>
+                                        {trade.status === 'processing' ? (
+                                            <>
+                                                <Loader2 className="h-3 w-3 animate-spin" /> Processing
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle2 className="h-3 w-3" /> ZK Verified
+                                            </>
+                                        )}
+                                    </span>
+                                </div>
+                                <span className="text-xs text-zinc-600 font-mono group-hover:text-emerald-400 transition-colors">
+                                    {trade.hash ? trade.hash.slice(0, 6) + '...' : 'pending'}
                                 </span>
                             </div>
-                            <a
-                                href="#"
-                                className="text-xs text-blue-400 hover:underline font-mono"
-                            >
-                                {log.hash.slice(0, 6)}...
-                            </a>
-                        </div>
+                        </ProofModal>
                     ))
                 )}
             </div>

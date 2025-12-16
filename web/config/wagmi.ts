@@ -1,9 +1,9 @@
-import { http, createConfig } from 'wagmi'
-import { foundry } from 'wagmi/chains'
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { sepolia, foundry } from 'wagmi/chains';
 
-export const config = createConfig({
-    chains: [foundry],
-    transports: {
-        [foundry.id]: http(),
-    },
-})
+export const config = getDefaultConfig({
+    appName: 'VeriVault Pro',
+    projectId: 'YOUR_PROJECT_ID', // In production, get from WalletConnect
+    chains: [foundry, sepolia],
+    ssr: true,
+});

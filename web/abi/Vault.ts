@@ -1,4 +1,4 @@
-export const VAULT_ADDRESS = '0x0165878A594ca255338adfa4d48449f69242Eb8F' as const
+export const VAULT_ADDRESS = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318" as const;
 
 export const VAULT_ABI = [
     {
@@ -35,6 +35,13 @@ export const VAULT_ABI = [
     },
     {
         "type": "function",
+        "name": "forceWithdraw",
+        "inputs": [{ "name": "amount", "type": "uint256", "internalType": "uint256" }],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "programVKey",
         "inputs": [],
         "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
@@ -42,9 +49,23 @@ export const VAULT_ABI = [
     },
     {
         "type": "function",
+        "name": "requestWithdraw",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "verifier",
         "inputs": [],
         "outputs": [{ "name": "", "type": "address", "internalType": "contract ISP1Verifier" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "withdrawalRequests",
+        "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
         "stateMutability": "view"
     },
     {
@@ -62,6 +83,24 @@ export const VAULT_ABI = [
         "inputs": [
             { "name": "user", "type": "address", "indexed": true, "internalType": "address" },
             { "name": "success", "type": "bool", "indexed": false, "internalType": "bool" }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "WithdrawalForced",
+        "inputs": [
+            { "name": "user", "type": "address", "indexed": true, "internalType": "address" },
+            { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "WithdrawalRequested",
+        "inputs": [
+            { "name": "user", "type": "address", "indexed": true, "internalType": "address" },
+            { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
         ],
         "anonymous": false
     }
