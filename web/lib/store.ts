@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TradeStatus = 'processing' | 'verified' | 'failed'
+export type TradeStatus = 'processing' | 'proving' | 'submitting' | 'verified' | 'failed'
 
 export type Trade = {
     id: string

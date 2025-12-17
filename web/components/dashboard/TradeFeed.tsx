@@ -94,13 +94,25 @@ export function TradeFeed() {
                                     </span>
                                     <span className={cn(
                                         "text-sm font-medium flex items-center gap-1",
-                                        trade.status === 'verified' ? "text-emerald-400" : "text-yellow-400"
+                                        trade.status === 'verified' ? "text-emerald-400" :
+                                            trade.status === 'failed' ? "text-red-400" : "text-yellow-400"
                                     )}>
-                                        {trade.status === 'processing' ? (
+                                        {trade.status === 'processing' && (
                                             <>
-                                                <Loader2 className="h-3 w-3 animate-spin" /> Processing
+                                                <Loader2 className="h-3 w-3 animate-spin" /> Risk Checks...
                                             </>
-                                        ) : (
+                                        )}
+                                        {trade.status === 'proving' && (
+                                            <>
+                                                <Loader2 className="h-3 w-3 animate-spin text-blue-400" /> SP1 Proving...
+                                            </>
+                                        )}
+                                        {trade.status === 'submitting' && (
+                                            <>
+                                                <Loader2 className="h-3 w-3 animate-spin text-purple-400" /> On-Chain...
+                                            </>
+                                        )}
+                                        {trade.status === 'verified' && (
                                             <>
                                                 <CheckCircle2 className="h-3 w-3" /> ZK Verified
                                             </>

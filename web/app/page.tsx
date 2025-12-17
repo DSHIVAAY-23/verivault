@@ -2,6 +2,7 @@ import { SolvencyStats } from '@/components/dashboard/SolvencyStats'
 import { TradeFeed } from '@/components/dashboard/TradeFeed'
 import { PanicBtn } from '@/components/dashboard/PanicBtn'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { DemoControls } from '@/components/dashboard/DemoControls'
 
 export default function Home() {
   return (
@@ -46,6 +47,7 @@ export default function Home() {
       <p className="mt-12 text-zinc-600 text-xs font-mono">
         VeriVault Phase 6 | Pro Dashboard | ZK-Rollup Solvency Monitor
       </p>
+      <DemoControls />
     </main>
   )
 }
