@@ -1,59 +1,54 @@
 'use client'
 
-import { useBalance } from 'wagmi'
-import { VAULT_ADDRESS } from '@/abi/Vault'
-import { ShieldCheck, Wallet, Workflow } from 'lucide-react'
+import { useVaultBalance } from '@/lib/hooks/useVault'
 import { formatEther } from 'viem'
+import { TrendingUp } from "lucide-react"
 
 export function SolvencyStats() {
-    const { data: balance } = useBalance({
-        address: VAULT_ADDRESS,
-    })
-
-    // Safe formatting helper
-    const formattedBalance = balance
-        ? parseFloat(formatEther(balance.value)).toFixed(4)
-        : '...'
+    const { data: balance } = useVaultBalance()
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mb-8">
-            {/* TVL Card */}
-            <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-2 text-zinc-400">
-                    <Wallet className="w-5 h-5" />
-                    <span className="text-sm font-medium">Vault TVL</span>
-                </div>
-                <div className="text-3xl font-bold text-white">
-                    {formattedBalance} {balance?.symbol}
-                </div>
-            </div>
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group">
+            {/* Background Gradient/Mesh */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5" />
 
-            {/* Operator Status */}
-            <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-2 text-zinc-400">
-                    <Workflow className="w-5 h-5" />
-                    <span className="text-sm font-medium">Operator Status</span>
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-zinc-400 font-mono text-xs uppercase tracking-wider">
+                        Vault Overview
+                    </h3>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                    </span>
-                    <span className="text-xl font-bold text-emerald-400">Live</span>
-                </div>
-            </div>
 
-            {/* Proof Status */}
-            <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-2 text-zinc-400">
-                    <ShieldCheck className="w-5 h-5" />
-                    <span className="text-sm font-medium">Verification</span>
-                </div>
-                <div className="text-xl font-bold text-indigo-400">
-                    SP1 Verified
-                </div>
-                <div className="text-xs text-zinc-500 mt-1">
-                    Zero-Knowledge Proofs Active
+                <div className="flex items-end justify-between">
+                    <div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold tracking-tight text-white">
+                                ${balance ? (Number(formatEther(balance)) * 3400).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0.00'}
+                            </span>
+                            <span className="text-sm font-medium text-zinc-500">USD</span>
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-1">Total Value Locked (TVL)</p>
+                    </div>
+
+                    {/* Decorative Sparkline */}
+                    <div className="h-12 w-24 relative">
+                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                            <path
+                                d="M0 40 Q 10 35, 20 38 T 40 20 T 60 25 T 80 10 T 100 5"
+                                fill="none"
+                                stroke="url(#gradient)"
+                                strokeWidth="2"
+                                className="drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                            />
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
+                                    <stop offset="100%" stopColor="#60a5fa" stopOpacity="1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div className="absolute -right-1 -top-1 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-[0_0_10px_#60a5fa]" />
+                    </div>
                 </div>
             </div>
         </div>

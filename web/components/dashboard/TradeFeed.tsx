@@ -1,132 +1,135 @@
 'use client'
 
-import { useWatchContractEvent, usePublicClient } from 'wagmi'
-import { useState, useEffect } from 'react'
-import { parseAbiItem } from 'viem'
-import { VAULT_ABI, VAULT_ADDRESS } from '@/abi/Vault'
-import { cn } from '@/lib/utils'
-import { Activity, Loader2, CheckCircle2 } from 'lucide-react'
-import { useTradeStore, Trade } from '@/lib/store'
-import { ProofModal } from '@/components/modals/ProofModal'
+import { useTradeStore } from "@/lib/store"
+import { useWatchContractEvent } from "wagmi"
+import { VAULT_ABI, VAULT_ADDRESS } from "@/abi/Vault"
+import { useEffect, useState } from "react"
+import { createPublicClient, http, parseAbiItem } from "viem"
+import { sepolia, foundry } from "viem/chains"
+import { CheckCircle2, CircleDashed, ExternalLink, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ProofModal } from "@/components/modals/ProofModal"
+
+const publicClient = createPublicClient({
+    chain: process.env.NEXT_PUBLIC_CHAIN_ID === '11155111' ? sepolia : foundry,
+    transport: http()
+})
 
 export function TradeFeed() {
     const { trades, addTrade, updateTrade } = useTradeStore()
+    const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null)
 
-    // Listen for real confirmations
+    // Listen for real contract events
     useWatchContractEvent({
         address: VAULT_ADDRESS,
         abi: VAULT_ABI,
         eventName: 'TradeExecuted',
-        onLogs(newLogs) {
-            newLogs.forEach((log) => {
-                const incomingHash = log.transactionHash
-                const exists = trades.find(t => t.hash === incomingHash)
+        onLogs(logs) {
+            logs.forEach(log => {
+                const { user, success } = log.args
+                const hash = log.transactionHash
 
-                if (exists) {
-                    updateTrade(exists.id, { status: 'verified', hash: incomingHash })
+                // Find pending trade for this user or update general feed
+                const pending = trades.find(t => t.user === user && t.status !== 'verified')
+
+                if (pending) {
+                    updateTrade(pending.id, {
+                        status: 'verified',
+                        success: success ?? true,
+                        hash
+                    })
                 } else {
                     addTrade({
-                        id: incomingHash,
-                        user: log.args.user || 'Unknown',
-                        success: log.args.success || false,
+                        id: hash + "-" + log.logIndex,
+                        user: user || '0x...',
                         status: 'verified',
+                        success: success ?? true,
                         timestamp: Date.now(),
-                        hash: incomingHash
+                        hash
                     })
                 }
             })
         },
     })
 
-    // Initial Load
-    const publicClient = usePublicClient()
-    useEffect(() => {
-        if (!publicClient) return;
-        async function fetchHistory() {
-            try {
-                // @ts-ignore
-                const history = await publicClient.getLogs({
-                    address: VAULT_ADDRESS,
-                    event: parseAbiItem('event TradeExecuted(address indexed user, bool success)'),
-                    fromBlock: 'earliest',
-                    toBlock: 'latest'
-                });
-
-                const formatted = history.map(log => ({
-                    id: log.transactionHash,
-                    user: log.args.user || 'Unknown',
-                    success: log.args.success || false,
-                    status: 'verified' as const,
-                    timestamp: Date.now(), // Approximate for old logs
-                    hash: log.transactionHash
-                })).reverse();
-
-                // Simple dedup based on hash
-                formatted.forEach(t => {
-                    if (!trades.find(existing => existing.hash === t.hash)) {
-                        addTrade(t)
-                    }
-                })
-            } catch (e) { console.error(e) }
-        }
-        fetchHistory();
-    }, [publicClient]);
+    // Helper for relative time
+    const timeAgo = (timestamp: number) => {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000)
+        if (seconds < 60) return `${seconds}s ago`
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return `${minutes}m ago`
+        return `${Math.floor(minutes / 60)}h ago`
+    }
 
     return (
-        <div className="w-full max-w-md p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-4 text-emerald-400">
-                <Activity className="w-5 h-5" />
-                <h2 className="text-lg font-semibold">Live Trade Feed</h2>
+        <div className="h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <h3 className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Live Feed</h3>
+                </div>
+                <a href={`https://sepolia.etherscan.io/address/${VAULT_ADDRESS}`} target="_blank" className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                    Etherscan <ExternalLink className="w-3 h-3" />
+                </a>
             </div>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            {/* Scrollable Feed */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                 {trades.length === 0 ? (
-                    <div className="text-zinc-500 text-sm italic text-center py-8">
+                    <div className="text-center py-12 text-zinc-600 text-sm font-mono">
                         Waiting for on-chain events...
                     </div>
                 ) : (
                     trades.map((trade) => (
-                        <ProofModal key={trade.id} trade={trade}>
-                            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between hover:border-emerald-500/50 cursor-pointer transition-colors group">
-                                <div className="flex flex-col">
-                                    <span className="text-xs text-zinc-400 font-mono flex items-center gap-1">
-                                        {trade.user.slice(0, 6)}...{trade.user.slice(-4)}
-                                    </span>
-                                    <span className={cn(
-                                        "text-sm font-medium flex items-center gap-1",
-                                        trade.status === 'verified' ? "text-emerald-400" :
-                                            trade.status === 'failed' ? "text-red-400" : "text-yellow-400"
-                                    )}>
-                                        {trade.status === 'processing' && (
-                                            <>
-                                                <Loader2 className="h-3 w-3 animate-spin" /> Risk Checks...
-                                            </>
-                                        )}
-                                        {trade.status === 'proving' && (
-                                            <>
-                                                <Loader2 className="h-3 w-3 animate-spin text-blue-400" /> SP1 Proving...
-                                            </>
-                                        )}
-                                        {trade.status === 'submitting' && (
-                                            <>
-                                                <Loader2 className="h-3 w-3 animate-spin text-purple-400" /> On-Chain...
-                                            </>
-                                        )}
-                                        {trade.status === 'verified' && (
-                                            <>
-                                                <CheckCircle2 className="h-3 w-3" /> ZK Verified
-                                            </>
-                                        )}
-                                    </span>
+                        <div
+                            key={trade.id}
+                            onClick={() => setSelectedTradeId(trade.id)}
+                            className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={cn(
+                                    "p-2 rounded-full",
+                                    trade.status === 'verified' ? "bg-emerald-500/20 text-emerald-400" : "bg-blue-500/20 text-blue-400"
+                                )}>
+                                    {trade.status === 'verified' ? <CheckCircle2 className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
                                 </div>
-                                <span className="text-xs text-zinc-600 font-mono group-hover:text-emerald-400 transition-colors">
-                                    {trade.hash ? trade.hash.slice(0, 6) + '...' : 'pending'}
-                                </span>
+                                <div>
+                                    <p className="text-sm font-mono text-zinc-300 group-hover:text-white transition-colors">
+                                        {trade.hash ? trade.hash.slice(0, 8) + '...' + trade.hash.slice(-6) : 'Processing...'}
+                                    </p>
+                                    <p className="text-xs text-zinc-500">
+                                        {timeAgo(trade.timestamp)}
+                                    </p>
+                                </div>
                             </div>
-                        </ProofModal>
+
+                            <div className="flex items-center gap-2">
+                                {trade.status === 'verified' ? (
+                                    <div className="px-2 py-1 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        VERIFIED
+                                    </div>
+                                ) : (
+                                    <div className={cn(
+                                        "px-2 py-1 rounded text-[10px] font-bold border",
+                                        trade.status === 'proving' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                                            trade.status === 'submitting' ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                                                "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                    )}>
+                                        {trade.status.toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     ))
                 )}
             </div>
+
+            {/* Modal for Details */}
+            <ProofModal
+                isOpen={!!selectedTradeId}
+                onClose={() => setSelectedTradeId(null)}
+                trade={trades.find(t => t.id === selectedTradeId)!}
+            />
         </div>
     )
 }

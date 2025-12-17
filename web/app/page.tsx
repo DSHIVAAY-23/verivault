@@ -1,53 +1,82 @@
 import { SolvencyStats } from '@/components/dashboard/SolvencyStats'
 import { TradeFeed } from '@/components/dashboard/TradeFeed'
 import { PanicBtn } from '@/components/dashboard/PanicBtn'
+import { ZKCard } from '@/components/dashboard/ZKCard'
+import { OperatorCard } from '@/components/dashboard/OperatorCard'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { DemoControls } from '@/components/dashboard/DemoControls'
+import { Shield } from 'lucide-react'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-8 bg-black text-white selection:bg-emerald-500/30">
-      {/* Header */}
-      <div className="z-10 max-w-7xl w-full items-center justify-between font-mono lg:flex mb-12">
-        <div className="flex items-center gap-4">
-          <span className="font-bold text-emerald-400 text-xl tracking-tighter">VERIVAULT</span>
-          <span className="hidden md:inline px-2 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-400">
-            PRO : Localnet (Sepolia Mode)
-          </span>
-        </div>
-        <div className="mt-4 lg:mt-0">
-          <ConnectButton />
-        </div>
+    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 relative overflow-x-hidden">
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-blue-900/20 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[0%] right-[0%] w-[40%] h-[40%] bg-purple-900/20 blur-[150px] rounded-full" />
       </div>
 
-      {/* Settings / Panic Area using Dropdown or just hidden details? 
-          For MVP PRO mode, we'll put it in a 'Settings' grid on the side or bottom 
-      */}
+      <div className="z-10 w-full max-w-[1400px] space-y-8">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row items-center justify-between gap-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-2xl tracking-tighter text-white">VERIVAULT</h1>
+              <p className="text-xs text-zinc-400 font-mono tracking-widest uppercase">Trustless Solvency Engine</p>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-7xl">
-        {/* Left Col: Market / Stats */}
-        <div className="space-y-6">
-          <div className="bg-zinc-900/50 p-6 rounded-xl border border-zinc-800 backdrop-blur-sm">
-            <h2 className="text-zinc-400 mb-4 font-mono text-sm">NETWORK STATUS</h2>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/50 border border-zinc-800 backdrop-blur-md">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-zinc-400">Sepolia Testnet</span>
+            </div>
+            <ConnectButton showBalance={false} />
+          </div>
+        </header>
+
+        {/* Top Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-2">
             <SolvencyStats />
           </div>
-
-          <PanicBtn />
-        </div>
-
-        {/* Center/Right Col: Feed (Wide) */}
-        <div className="md:col-span-2">
-          <div className="bg-zinc-900/50 p-6 rounded-xl border border-zinc-800 backdrop-blur-sm min-h-[600px]">
-            <h2 className="text-zinc-400 mb-6 font-mono text-sm">REAL-TIME PROOF FEED</h2>
-            <TradeFeed />
+          <div className="lg:col-span-1">
+            <OperatorCard />
+          </div>
+          <div className="lg:col-span-1">
+            <ZKCard />
           </div>
         </div>
-      </div>
 
-      <p className="mt-12 text-zinc-600 text-xs font-mono">
-        VeriVault Phase 6 | Pro Dashboard | ZK-Rollup Solvency Monitor
-      </p>
-      <DemoControls />
+        {/* Main Control Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px]">
+          {/* Left: Emergency */}
+          <div className="lg:col-span-1">
+            <PanicBtn />
+          </div>
+
+          {/* Right: Feed */}
+          <div className="lg:col-span-2">
+            <div className="glass-panel rounded-2xl p-6 h-full flex flex-col border border-white/5 bg-zinc-900/40">
+              <TradeFeed />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-12 flex justify-between items-end border-t border-white/5 pt-8 text-zinc-600 text-xs font-mono">
+          <div>
+            VeriVault Pro Dashboard v1.2.0
+            <br />
+            Powered by SP1 & Sepolia
+          </div>
+
+          <DemoControls />
+        </footer>
+      </div>
     </main>
   )
 }

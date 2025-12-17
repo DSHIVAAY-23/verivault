@@ -1,11 +1,18 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Trade } from "@/lib/store"
 import { CheckCircle, ShieldCheck, Activity } from "lucide-react"
 
-export function ProofModal({ trade, children }: { trade: Trade; children: React.ReactNode }) {
+interface ProofModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    trade: Trade | undefined;
+}
+
+export function ProofModal({ isOpen, onClose, trade }: ProofModalProps) {
+    if (!trade) return null;
+
     return (
-        <Dialog>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-emerald-400">
